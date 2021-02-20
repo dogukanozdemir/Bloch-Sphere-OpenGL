@@ -25,6 +25,7 @@
   <ItemGroup>
     <None Include="src\shaders\fragmentShader.glsl" />
     <None Include="src\shaders\vertexShader.glsl" />
+    <None Include="src\shaders\yellowShader.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

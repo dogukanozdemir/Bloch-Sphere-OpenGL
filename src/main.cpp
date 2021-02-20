@@ -2,23 +2,30 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <streambuf>
+using namespace std;
+
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void loadShader(char* filePath, char* shaderSource);
+
+void loadFile(const char* filePath, char** shaderSource) {
+	ifstream t(filePath);
+	string source((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
+	*shaderSource = (char*)malloc(sizeof(char) * source.length());
+	strcpy_s(*shaderSource, source.size() + 1, source.c_str());
+}
+
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
+
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
 "void main()\n"
@@ -28,12 +35,19 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 int main()
 {
+	char* fragmentShaderSource = NULL;
+	char *vertexShaderSource = NULL;
+	char* yellowShaderSource = NULL;
+	loadFile("src/shaders/vertexShader.glsl", &vertexShaderSource);
+	loadFile("src/shaders/fragmentShader.glsl", &fragmentShaderSource);
+	loadFile("src/shaders/yellowShader.glsl", &yellowShaderSource);
+
+
 	// glfw: initialize and configure
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -60,41 +74,31 @@ int main()
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
-	// check for shader compile errors
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+
 	// fragment shader
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
-	// check for shader compile errors
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	unsigned int yellowShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(yellowShader, 1, &yellowShaderSource, NULL);
+	glCompileShader(yellowShader);
 	// link shaders
 	unsigned int shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
-	// check for linking errors
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
+	// link shaders
+	unsigned int yellowShaderProgram = glCreateProgram();
+	glAttachShader(yellowShaderProgram, vertexShader);
+	glAttachShader(yellowShaderProgram, yellowShader);
+	glLinkProgram(yellowShaderProgram);
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	glDeleteShader(yellowShader);
+
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	float vertices[] = {
@@ -105,10 +109,8 @@ int main()
 		 0.0f, 0.0f, 0.0f, // middle point 3
 		 0.5f, 1.0f, 0.0f, // right triangle, top 4
 		 1.0f, 0.0f, 0.0f, // right triangle, bottom right 5
-
-
-
 	};
+
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -117,18 +119,15 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
 	glBindVertexArray(0);
 
 
 	// uncomment this call to draw in wireframe polygons.
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -143,7 +142,11 @@ int main()
 		// draw our first triangle
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glUseProgram(yellowShaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 3, 3);
 		//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
@@ -161,6 +164,8 @@ int main()
 	glfwTerminate();
 	return 0;
 }
+
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window)

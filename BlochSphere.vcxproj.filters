@@ -32,5 +32,8 @@
     <None Include="src\shaders\vertexShader.glsl">
       <Filter>Shader</Filter>
     </None>
+    <None Include="src\shaders\yellowShader.glsl">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
