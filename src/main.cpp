@@ -95,6 +95,7 @@ int main()
 	glAttachShader(yellowShaderProgram, yellowShader);
 	glLinkProgram(yellowShaderProgram);
 
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteShader(yellowShader);
