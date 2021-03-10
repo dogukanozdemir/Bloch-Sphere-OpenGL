@@ -25,3 +25,30 @@ print("state vector [" + str(alpha) + "]," + "[" + str(beta) + "]")
 print("%" +  str((abs(alpha)**2) * 100))
 print((abs(beta)**2) + (abs(alpha)**2))
 
+"""
+def xGate(theta,phi):
+    theta = math.pi - theta
+"""
+"""
+def yGate(theta,phi):
+    if theta != 0 or theta != math.pi:
+        phi = (phi + math.pi) % (math.pi * 2)
+    theta = math.pi - theta
+"""
+"""
+def zGate(theta,phi):
+    if theta != 0 or theta != math.pi:
+        phi = (phi + math.pi) % (math.pi * 2)
+"""
+"""
+theta = 90 <-> 90
+phi = 90 <-> 270
+
+theta = 45 <-> 45
+phi = 0 <-> 0
+
+theta = 135 <-> 45
+phi = 0 <-> 180
+
+
+"""
